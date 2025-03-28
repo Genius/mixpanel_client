@@ -3,7 +3,7 @@ require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 describe Mixpanel::Client do
   before :all do
     @client = Mixpanel::Client.new(
-      api_secret: 'test_secret'
+      auth: ['test_secret', nil]
     )
 
     @uri = Regexp.escape(Mixpanel::Client::BASE_URI)
@@ -12,23 +12,23 @@ describe Mixpanel::Client do
   context 'when initializing a new Mixpanel::Client' do
     it 'should set a timeout option as nil by default' do
       expect(Mixpanel::Client.new(
-        api_secret: 'test_secret'
+        auth: ['test_secret', nil]
       ).timeout).to be_nil
     end
 
     it 'should be able to set a timeout option when passed' do
       expect(Mixpanel::Client.new(
-        api_secret: 'test_secret',
+        auth: ['test_secret', nil],
         timeout: 3
       ).timeout).to eql(3)
     end
   end
 
   context 'when making an invalid request' do
-    it 'should raise an error when API secret is null' do
+    it 'should raise an error when auth is null' do
       expect do
         Mixpanel::Client.new(
-          api_secret: nil
+          auth: nil
         )
       end.to raise_error(Mixpanel::ConfigurationError)
     end

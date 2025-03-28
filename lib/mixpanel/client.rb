@@ -14,7 +14,7 @@ module Mixpanel
     IMPORT_URI = 'https://api.mixpanel.com'.freeze
 
     attr_reader :uri
-    attr_accessor :api_secret, :timeout
+    attr_accessor :auth, :timeout
 
     def self.base_uri_for_resource(resource)
       if resource == 'export'
@@ -27,20 +27,22 @@ module Mixpanel
     end
 
     # Configure the client
+    # The config must have the auth field, which is a list of
+    # either [api_secret, nil] or [service_account_username, service_account_pass].
     #
     # @example
-    #   config = {api_secret: '456'}
+    #   config = {auth: ['some-api-secret', nil]}
     #   client = Mixpanel::Client.new(config)
     #
-    # @param [Hash] config consisting of an 'api_secret' and additonal options
+    # @param [Hash] config consisting of the auth data & any additional options.
     def initialize(config)
-      @api_secret  = config[:api_secret]
+      @auth        = config[:auth]
       @timeout     = config[:timeout]    || nil
       @@base_uri   = config[:base_uri]   || nil
       @@data_uri   = config[:data_uri]   || nil
       @@import_uri = config[:import_uri] || nil
 
-      raise ConfigurationError, 'api_secret is required' if @api_secret.nil?
+      raise ConfigurationError, 'auth details are required' if @auth.nil?
     end
 
     # Return mixpanel data as a JSON object or CSV string
@@ -65,7 +67,7 @@ module Mixpanel
     def request(resource, options)
       @uri = request_uri(resource, options)
 
-      response = URI.get(@uri, @timeout, @api_secret)
+      response = URI.get(@uri, @timeout, @auth)
 
       if %w(export import).include?(resource) && @format != 'raw'
         response = %([#{response.split("\n").join(',')}])
